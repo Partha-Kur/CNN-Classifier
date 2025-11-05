@@ -1,0 +1,90 @@
+import tensorflow as tf
+from tensorflow import keras
+import matplotlib.pyplot as plt
+
+import tensorflow as tf
+from tensorflow import keras
+
+cifar = keras.datasets.cifar10
+(train_images, train_labels), (test_images, test_labels) = cifar.load_data()
+
+# Normalize the images
+train_images = train_images / 255.0
+test_images = test_images / 255.0
+
+# If you want to look at other images change this
+IMGindex = 2
+
+import matplotlib.pyplot as plt
+# Define the class names for CIFAR-10
+classes = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
+
+plt.imshow(train_images[IMGindex], cmap=plt.cm.binary)
+plt.xlabel(classes[train_labels[IMGindex][0]]) # Access the label correctly
+plt.show()
+
+from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Input
+from keras.models import Model
+
+# Functional API
+
+# Define input shape for CIFAR-10
+inputs = Input(shape=(32, 32, 3))
+
+# Convolutional and pooling layers
+x = Conv2D(64, (3, 3), activation='relu')(inputs)
+x = MaxPooling2D((2, 2))(x)
+
+x = Conv2D(64, (3, 3), activation='relu')(x)
+x = MaxPooling2D((2, 2))(x)
+
+# Flatten and dense layers
+x = Flatten()(x)
+x = Dense(128, activation='relu')(x)
+outputs = Dense(10, activation='softmax')(x)
+
+# Create model
+model = Model(inputs=inputs, outputs=outputs)
+
+model.summary
+
+model.compile(optimizer='adam',loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+model.fit(train_images, train_labels, epochs=12)
+
+test_loss, test_acc = model.evaluate(test_images, test_labels)
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Define the class names for CIFAR-10
+classes = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
+
+# Get the predictions for the test images
+predictions = model.predict(test_images)
+
+# Function to display an image and its prediction
+def plot_image_prediction(i, predictions_array, true_label, img):
+  predictions_array, true_label, img = predictions_array[i], true_label[i], img[i]
+  plt.grid(False)
+  plt.xticks([])
+  plt.yticks([])
+
+  plt.imshow(img, cmap=plt.cm.binary) # Removed reshape
+
+  predicted_label = np.argmax(predictions_array)
+  color = 'blue' if predicted_label == true_label else 'red'
+
+  plt.xlabel("{} ({})".format(classes[predicted_label],
+                                classes[true_label[0]]), # Access the true label correctly
+                                color=color)
+
+# Plot the first 10 test images with their predictions
+num_rows = 5
+num_cols = 2
+num_images = num_rows * num_cols
+plt.figure(figsize=(2 * 2 * num_cols, 2 * num_rows))
+for i in range(num_images):
+  plt.subplot(num_rows, 2 * num_cols, 2 * i + 1)
+  plot_image_prediction(i, predictions, test_labels, test_images)
+plt.tight_layout()
+plt.show()
